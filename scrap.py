@@ -3,7 +3,6 @@ import requests
 import pandas as pd
 import re
 
-
 MASTER_URL = 'https://www.ashp.org/Drug-Shortages/Current-Shortages/' \
              'Drug-Shortages-List?page=All'
 
@@ -37,7 +36,10 @@ def generate_list(url):
     for link in links:
         url = url_prefix + link.get('href')
         urls.append(url)
-        id = pass ######### NEED TO FIGURE OUT HOW TO EXTRACT PRODUCT ID FROM URL
+        pattern = re.compile(r'id=(\d+)$')
+        drug_id = re.search(pattern, url).group(1)
+        print("drug id: ", drug_id)
+        ids.append(drug_id)
     df['links'] = urls
     df['id'] = ids
     return df
@@ -79,12 +81,35 @@ def get_details(df):
 
     """
 
-
     def extract_details(url):
-        pass
+        """
+        Extract page details from URL
+        List of:
+            products_affected - list of products, mfg, ndc affected
+            reason_shortage - reason for shortage of above products
+            available_product - available products for ordering
+            est_resupply_date - resupply date estimates
+            alternative_agents_management - alternative options
+            references - list of references
+            updated - last updated date and information
+        :param url: url of specific drug id
+        :return - a tuple of page elements ? or dictionary:
+        """
+        products_affected = []
+        reason_shortage = []
+        available_product = []
+        est_resupply_date = []
+        alternative_agents_management = []
+        references = []
+        updated = []
+        response = requests.get(url)
 
-    
-    example_url = 'https://www.ashp.org/Drug-Shortages/Current-Shortages/Drug-Shortage-Detail.aspx?id=437'
+        soup = BeautifulSoup(response.text, 'lxml')
+        date = soup.find_all('p', attrs={"class": "date"})[0].span.text
+        drug = soup.find_all('h1', attrs={'class': 'alt'})[0].span.text
+        updated = soup.find_all('div', attrs={'id': '1_Updated'})[0].p.span.p.text
+
+        example_url = 'https://www.ashp.org/Drug-Shortages/Current-Shortages/Drug-Shortage-Detail.aspx?id=437'
 
     df = df
     for index, row in df.iterrows():
