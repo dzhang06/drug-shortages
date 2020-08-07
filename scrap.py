@@ -109,6 +109,23 @@ def get_details(df):
         drug = soup.find_all('h1', attrs={'class': 'alt'})[0].span.text
         updated = soup.find_all('div', attrs={'id': '1_Updated'})[0].p.span.p.text
 
+        elements = ['1_Affected',
+                    '1_Reason',
+                    '1_Avaliable',  # apparently misspelled in code
+                    '1_Resupply',
+                    '1_Alternatives',
+                    '1_References']
+
+        def extract_data(element):
+            if element == '1_References':
+                element_data = soup.find_all('div', attrs={'id': element})[0].ul.li.span.ol
+            else:
+                element_data = soup.find_all('div', attrs={'id': element})[0].ul.li.span.ul
+            element_list = []
+            for child in element_data.children:
+                element_list.append(child.text)
+            return element_list
+
         example_url = 'https://www.ashp.org/Drug-Shortages/Current-Shortages/Drug-Shortage-Detail.aspx?id=437'
 
     df = df
