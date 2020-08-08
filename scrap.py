@@ -3,8 +3,7 @@ import requests
 import pandas as pd
 import re
 
-MASTER_URL = 'https://www.ashp.org/Drug-Shortages/Current-Shortages/' \
-             'Drug-Shortages-List?page=All'
+MASTER_URL = 'https://www.ashp.org/Drug-Shortages/Current-Shortages/Drug-Shortages-List?page=All'
 
 
 def generate_list(url):
@@ -38,7 +37,6 @@ def generate_list(url):
         urls.append(url)
         pattern = re.compile(r'id=(\d+)$')
         drug_id = re.search(pattern, url).group(1)
-        print("drug id: ", drug_id)
         ids.append(drug_id)
     df['links'] = urls
     df['id'] = ids
@@ -81,7 +79,7 @@ def get_details(df):
 
     """
 
-    def extract_details(url):
+    def extract_each_drug(url, id, df):
         """
         Extract page details from URL
         List of:
@@ -103,12 +101,11 @@ def get_details(df):
         references = []
         updated = []
         response = requests.get(url)
-
         soup = BeautifulSoup(response.text, 'lxml')
+        drug_id = id
         date = soup.find_all('p', attrs={"class": "date"})[0].span.text
         drug = soup.find_all('h1', attrs={'class': 'alt'})[0].span.text
         updated = soup.find_all('div', attrs={'id': '1_Updated'})[0].p.span.p.text
-
         elements = ['1_Affected',
                     '1_Reason',
                     '1_Avaliable',  # apparently misspelled in code
@@ -116,23 +113,43 @@ def get_details(df):
                     '1_Alternatives',
                     '1_References']
 
-        def extract_data(element):
-            if element == '1_References':
-                element_data = soup.find_all('div', attrs={'id': element})[0].ul.li.span.ol
+        def extract_data_pieces(element):
+            exists = soup.find_all(id=element)
+            if len(exists) > 0:
+                if element == '1_References':
+                    # element_data = soup.find_all('div', attrs={'id': element})[0].ul.li.span.ol
+                    element_data = exists[0].ul.li.span.ol
+                else:
+                    # element_data = soup.find_all('div', attrs={'id': element})[0].ul.li.span.ul
+                    # print(soup.find_all('div', attrs={'id': element}))
+                    element_data = exists[0].ul.li.span.ul
             else:
-                element_data = soup.find_all('div', attrs={'id': element})[0].ul.li.span.ul
-            element_list = []
-            for child in element_data.children:
-                element_list.append(child.text)
-            return element_list
+                element_data = None
 
+            element_list = []
+            if element_data is not None:
+                for child in element_data.children:
+                    element_list.append(child.text)
+            return element_list
         example_url = 'https://www.ashp.org/Drug-Shortages/Current-Shortages/Drug-Shortage-Detail.aspx?id=437'
 
-    df = df
+        df = df
+        for element in elements:
+            lst = extract_data_pieces(element)
+            for item in lst:
+                df = df.append({'id': drug_id, 'drug': drug, 'type': element, 'data': item}, ignore_index=True)
+        return df
+
+    cols = ['id', 'drug', 'type', 'data']
+    details_df = pd.DataFrame(columns=cols)
     for index, row in df.iterrows():
         url = row[3]
-        extract_details(url)
-    return df
+        drug_id = row[4]
+        drug_df = extract_each_drug(url, drug_id, details_df)
+        details_df = details_df.append(drug_df)
+    return details_df
 
 
 df_2 = get_details(primary_df)
+df_2.to_csv('drugs.csv')
+print(df_2)
