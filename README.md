@@ -6,16 +6,16 @@ https://www.ashp.org/Drug-Shortages/Current-Shortages/Drug-Shortages-List?page=A
 ### What Works
 
 Script can scrape and save to csv the overall list information capturing generic name, shortage status, 
-revision date, link to page with more details, and also the drug id found in the url
+revision date, link to page with more details, and also the drug id found in the url. 
+Also, can generate new csv with all drug details stored within drug specific url.
 
 ### What's broken
 
-Does not work on the most basic level besides what's mentioned above. Still in progress..
+nothing at the moment
 
 ### Currently in progress
 
-Working on logic to scrape each individual drug's detail page to extract information about products 
-affected, reason for shortage, available products, estimated resupply date, references, and last updated information
+Working on way to make something useful out of recent updates
 
 ### Planned for future
 
@@ -24,3 +24,9 @@ website daily and update the database with new updates and also send a notificat
 
 Also maybe incorporate the FDA's drug shortage information as well.
 
+# Changelog
+
+8/8/20
+- created method to filter main drugs table by date
+- completed method to create drug details csv
+- started changelog
