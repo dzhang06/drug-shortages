@@ -64,12 +64,12 @@ def generate_details(frame):
 primary_df = pd.read_csv('pandas_db.csv')
 
 
-def get_details(df):
+def get_details(shortage_df):
     """
     loop through each drug, get details from page, and add them to df
     Parameters
     ----------
-    df : dataframe
+    shortage_df : dataframe
         start with dataframe with only front page info only.
 
     Returns
@@ -121,7 +121,6 @@ def get_details(df):
                     element_data = exists[0].ul.li.span.ol
                 else:
                     # element_data = soup.find_all('div', attrs={'id': element})[0].ul.li.span.ul
-                    # print(soup.find_all('div', attrs={'id': element}))
                     element_data = exists[0].ul.li.span.ul
             else:
                 element_data = None
@@ -142,14 +141,21 @@ def get_details(df):
 
     cols = ['id', 'drug', 'type', 'data']
     details_df = pd.DataFrame(columns=cols)
-    for index, row in df.iterrows():
+    loop = 1
+    print(shortage_df)
+    list_dfs = []
+    # iterate through shortage drug list with unique ID and extract a df of drug properties
+    for index, row in shortage_df.iterrows():
         url = row[3]
         drug_id = row[4]
-        drug_df = extract_each_drug(url, drug_id, details_df)
-        details_df = details_df.append(drug_df)
+        if pd.notna(url):
+            print('completed loop: ', loop)
+            list_dfs.append(extract_each_drug(url, drug_id, details_df))
+            # details_df = details_df.append(drug_df, ignore_index=True)
+        loop += 1
+    details_df = pd.concat(list_dfs, ignore_index=True)
     return details_df
 
 
 df_2 = get_details(primary_df)
-df_2.to_csv('drugs.csv')
-print(df_2)
+df_2.to_csv('drugs.csv', index=False)
