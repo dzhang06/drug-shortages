@@ -61,7 +61,6 @@ def generate_details(frame):
 # primary_df = generate_list(MASTER_URL)
 # save_to_file(primary_df)
 
-primary_df = pd.read_csv('pandas_db.csv')
 
 
 def get_details(shortage_df):
@@ -159,3 +158,5 @@ def get_details(shortage_df):
 
 df_2 = get_details(primary_df)
 df_2.to_csv('drugs.csv', index=False)
+primary_df = pd.read_csv('pandas_db.csv')
+details_df = pd.read_csv('drugs.csv')
