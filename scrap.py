@@ -3,6 +3,10 @@ import requests
 import pandas as pd
 import re
 from datetime import datetime
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
 
 MASTER_URL = 'https://www.ashp.org/Drug-Shortages/Current-Shortages/Drug-Shortages-List?page=All'
 
@@ -157,12 +161,6 @@ def get_details(shortage_df):
     return details_df
 
 
-df_2 = get_details(primary_df)
-df_2.to_csv('drugs.csv', index=False)
-primary_df = pd.read_csv('pandas_db.csv')
-details_df = pd.read_csv('drugs.csv')
-
-
 def get_updates(url, date):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, features='lxml')
@@ -170,11 +168,33 @@ def get_updates(url, date):
     df = pd.read_html(str(table))[0]
     df['Revision Date'] = pd.to_datetime(df['Revision Date'], format='%b %d, %Y')
     df.sort_values(by='Revision Date', inplace=True, ascending=False)
-    print(df)
     filtered_df = df[df['Revision Date'] >= date]
-    print(filtered_df)
+    return filtered_df
 
 
-date = datetime.strptime('2020-08-06', format('%Y-%m-%d'))
-get_updates(MASTER_URL, date)
-
+# date = datetime.strptime('2020-08-06', format('%Y-%m-%d'))
+today = datetime.now().strftime('%Y-%m-%d')
+date = today
+today_updates = get_updates(MASTER_URL, date)
+s = smtplib.SMTP('smtp.gmail.com', 587)
+s.starttls()
+s.login('dzpynotifier@gmail.com', 'iduvkfalxtyfntdi')
+message = MIMEMultipart()
+message['Subject'] = 'Drug Shortage update for ' + date
+message['From'] = 'dzpynotifier@gmail.com'
+html = """\
+<html>
+    <head></head>
+    <body>
+        {0}
+    </body>
+</html>
+""".format(today_updates.to_html(index=False).replace('border="1"', 'border="0"'))
+part1 = MIMEText(html, 'html')
+message.attach(part1)
+s.sendmail('dzpynotifier@gmail.com', 'dzhang06@gmail.com', message.as_string())
+s.quit()
+# df_2 = get_details(primary_df)
+# df_2.to_csv('drugs.csv', index=False)
+# primary_df = pd.read_csv('pandas_db.csv')
+# details_df = pd.read_csv('drugs.csv')
