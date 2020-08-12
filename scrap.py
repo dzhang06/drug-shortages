@@ -7,6 +7,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
+import config
 
 MASTER_URL = 'https://www.ashp.org/Drug-Shortages/Current-Shortages/Drug-Shortages-List?page=All'
 
@@ -178,7 +179,7 @@ date = today
 today_updates = get_updates(MASTER_URL, date)
 s = smtplib.SMTP('smtp.gmail.com', 587)
 s.starttls()
-s.login('dzpynotifier@gmail.com', 'iduvkfalxtyfntdi')
+s.login(config.username, config.password)
 message = MIMEMultipart()
 message['Subject'] = 'Drug Shortage update for ' + date
 message['From'] = 'dzpynotifier@gmail.com'
