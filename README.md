@@ -26,6 +26,9 @@ Also maybe incorporate the FDA's drug shortage information as well.
 
 # Changelog
 
+8/10/20
+- added ability to send email of current day's changes
+
 8/8/20
 - created method to filter main drugs table by date
 - completed method to create drug details csv
